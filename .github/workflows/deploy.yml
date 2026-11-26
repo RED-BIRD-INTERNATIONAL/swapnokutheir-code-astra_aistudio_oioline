@@ -1,21 +1,22 @@
 name: Deploy Production
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - '.github/workflows/ci.yml'
 concurrency:
   group: astra-production
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -23,6 +24,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npx eslint firestore.rules
+      - run: npm test
       - run: npm run build
       - run: npx vercel --prod --token "$VERCEL_TOKEN" --yes
         env:

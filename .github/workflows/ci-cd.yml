@@ -1,0 +1,15 @@
+name: CI-CD Status
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [CI, Deploy Production]
+    types: [completed]
+    branches: [main]
+concurrency:
+  group: astra-status-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Quality and deployment workflows are serialized; this workflow does not deploy."
