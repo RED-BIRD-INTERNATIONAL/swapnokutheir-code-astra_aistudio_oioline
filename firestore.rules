@@ -1,0 +1,333 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: default deny all paths unless explicitly matched
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAuthenticatedUser() {
+      return isSignedIn() &&
+        request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticatedUser() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'createdAt', 'lastLoginAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'displayName', 'organization', 'photoURL', 'createdAt', 'lastLoginAt', 'preferredLanguage']) &&
+        data.uid == userId &&
+        data.uid is string && data.uid.size() <= 128 &&
+        data.email is string && data.email.size() <= 254 &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+        data.createdAt is string && data.createdAt.size() <= 64 &&
+        data.lastLoginAt is string && data.lastLoginAt.size() <= 64 &&
+        (!('organization' in data) || (data.organization is string && data.organization.size() <= 160)) &&
+        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 512)) &&
+        (!('preferredLanguage' in data) || data.preferredLanguage in ['bn', 'en', 'auto']);
+    }
+
+    function isValidProject(data, userId, projectId) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'category', 'color', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'name', 'category', 'description', 'color', 'createdAt', 'updatedAt', 'fileCount', 'messageCount', 'isDefault']) &&
+        data.id == projectId &&
+        data.userId == userId &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+        data.category is string && data.category.size() <= 80 &&
+        data.color is string && data.color.size() <= 32 &&
+        data.createdAt is string && data.createdAt.size() <= 64 &&
+        data.updatedAt is string && data.updatedAt.size() <= 64 &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+        (!('fileCount' in data) || data.fileCount is number) &&
+        (!('messageCount' in data) || data.messageCount is number) &&
+        (!('isDefault' in data) || data.isDefault is bool);
+    }
+
+    function isValidWorkspaceDoc(data, userId, projectId, docId) {
+      return data.keys().hasAll(['docId', 'projectId', 'userId', 'filename', 'language', 'content', 'updatedAt']) &&
+        data.keys().hasOnly(['docId', 'projectId', 'userId', 'filename', 'language', 'content', 'updatedAt', 'versionCount']) &&
+        data.docId == docId &&
+        data.projectId == projectId &&
+        data.userId == userId &&
+        data.filename is string && data.filename.size() >= 1 && data.filename.size() <= 200 &&
+        data.language is string && data.language.size() <= 64 &&
+        data.content is string && data.content.size() <= 400000 &&
+        data.updatedAt is string && data.updatedAt.size() <= 64 &&
+        (!('versionCount' in data) || data.versionCount is number);
+    }
+
+    function isValidChatMessage(data, userId, projectId, messageId) {
+      return data.keys().hasAll(['id', 'projectId', 'userId', 'role', 'content', 'timestamp', 'createdAtMs']) &&
+        data.keys().hasOnly(['id', 'projectId', 'userId', 'role', 'content', 'timestamp', 'createdAtMs']) &&
+        data.id == messageId &&
+        data.projectId == projectId &&
+        data.userId == userId &&
+        data.role in ['user', 'agent', 'system'] &&
+        data.content is string && data.content.size() <= 50000 &&
+        data.timestamp is string && data.timestamp.size() <= 64 &&
+        data.createdAtMs is number;
+    }
+
+    function isValidMusicTrack(data, userId, trackId) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'genre', 'mood', 'bpm', 'musicalKey', 'durationSeconds', 'createdAt']) &&
+        data.keys().hasOnly([
+          'id', 'userId', 'projectId', 'title', 'prompt', 'genre', 'mood', 'language',
+          'bpm', 'musicalKey', 'timeSignature', 'durationSeconds', 'styleNotes',
+          'instruments', 'chordProgression', 'melodyNotes', 'bassPattern',
+          'drumPattern', 'lyricsSections', 'fullLyricsText', 'createdAt'
+        ]) &&
+        data.id == trackId &&
+        data.userId == userId &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 180 &&
+        data.genre is string && data.genre.size() <= 64 &&
+        data.mood is string && data.mood.size() <= 64 &&
+        data.bpm is number && data.bpm >= 40 && data.bpm <= 220 &&
+        data.musicalKey is string && data.musicalKey.size() <= 32 &&
+        data.durationSeconds is number && data.durationSeconds >= 5 && data.durationSeconds <= 600 &&
+        data.createdAt is string && data.createdAt.size() <= 64 &&
+        (!('projectId' in data) || (data.projectId is string && data.projectId.size() <= 128)) &&
+        (!('prompt' in data) || (data.prompt is string && data.prompt.size() <= 1000)) &&
+        (!('language' in data) || (data.language is string && data.language.size() <= 40)) &&
+        (!('timeSignature' in data) || (data.timeSignature is string && data.timeSignature.size() <= 16)) &&
+        (!('styleNotes' in data) || (data.styleNotes is string && data.styleNotes.size() <= 1200)) &&
+        (!('fullLyricsText' in data) || (data.fullLyricsText is string && data.fullLyricsText.size() <= 20000)) &&
+        (!('instruments' in data) || (data.instruments is list && data.instruments.size() <= 24)) &&
+        (!('chordProgression' in data) || (data.chordProgression is list && data.chordProgression.size() <= 128)) &&
+        (!('melodyNotes' in data) || (data.melodyNotes is list && data.melodyNotes.size() <= 512)) &&
+        (!('bassPattern' in data) || (data.bassPattern is list && data.bassPattern.size() <= 256)) &&
+        (!('drumPattern' in data) || (data.drumPattern is map)) &&
+        (!('lyricsSections' in data) || (data.lyricsSections is list && data.lyricsSections.size() <= 32));
+    }
+
+    function isValidSwapnokuthirAgent(data, userId, agentId) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'sector', 'masterAgent', 'mode', 'directive', 'lastSyncedAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'name', 'bnName', 'sector', 'masterAgent', 'mode', 'directive', 'lastAction', 'lastSyncedAt', 'tasksCompleted']) &&
+        data.id == agentId &&
+        data.userId == userId &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+        data.sector in ['content', 'catalog', 'seo', 'sales', 'support', 'ops'] &&
+        data.masterAgent is string && data.masterAgent.size() >= 1 && data.masterAgent.size() <= 80 &&
+        data.mode in ['autonomous', 'supervised', 'paused'] &&
+        data.directive is string && data.directive.size() <= 2000 &&
+        data.lastSyncedAt is string && data.lastSyncedAt.size() <= 64 &&
+        (!('bnName' in data) || (data.bnName is string && data.bnName.size() <= 160)) &&
+        (!('lastAction' in data) || (data.lastAction is string && data.lastAction.size() <= 500)) &&
+        (!('tasksCompleted' in data) || (data.tasksCompleted is number && data.tasksCompleted >= 0));
+    }
+
+    function isValidSwapnokuthirPost(data, userId, postId) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'slug', 'category', 'status', 'content', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'title', 'slug', 'category', 'status', 'excerpt', 'content', 'authorAgent', 'featured', 'views', 'createdAt', 'updatedAt']) &&
+        data.id == postId &&
+        data.userId == userId &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 240 &&
+        data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 200 &&
+        data.category in ['Collection', 'Story', 'Campaign', 'Announcement', 'Guide'] &&
+        data.status in ['published', 'draft', 'scheduled'] &&
+        data.content is string && data.content.size() <= 50000 &&
+        data.createdAt is string && data.createdAt.size() <= 64 &&
+        data.updatedAt is string && data.updatedAt.size() <= 64 &&
+        (!('excerpt' in data) || (data.excerpt is string && data.excerpt.size() <= 1000)) &&
+        (!('authorAgent' in data) || (data.authorAgent is string && data.authorAgent.size() <= 120)) &&
+        (!('featured' in data) || data.featured is bool) &&
+        (!('views' in data) || (data.views is number && data.views >= 0));
+    }
+
+    function isValidSwapnokuthirContent(data, userId, contentId) {
+      return data.keys().hasAll(['id', 'userId', 'sectionKey', 'label', 'headline', 'isLive', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'sectionKey', 'label', 'headline', 'subheadline', 'body', 'ctaLabel', 'ctaUrl', 'seoTitle', 'seoDescription', 'isLive', 'controlledByAgent', 'updatedAt']) &&
+        data.id == contentId &&
+        data.userId == userId &&
+        data.sectionKey in ['hero', 'announcement', 'featured_collections', 'brand_story', 'contact_cta'] &&
+        data.label is string && data.label.size() >= 1 && data.label.size() <= 160 &&
+        data.headline is string && data.headline.size() >= 1 && data.headline.size() <= 320 &&
+        data.isLive is bool &&
+        data.updatedAt is string && data.updatedAt.size() <= 64 &&
+        (!('subheadline' in data) || (data.subheadline is string && data.subheadline.size() <= 400)) &&
+        (!('body' in data) || (data.body is string && data.body.size() <= 10000)) &&
+        (!('ctaLabel' in data) || (data.ctaLabel is string && data.ctaLabel.size() <= 120)) &&
+        (!('ctaUrl' in data) || (data.ctaUrl is string && data.ctaUrl.size() <= 256)) &&
+        (!('seoTitle' in data) || (data.seoTitle is string && data.seoTitle.size() <= 200)) &&
+        (!('seoDescription' in data) || (data.seoDescription is string && data.seoDescription.size() <= 500)) &&
+        (!('controlledByAgent' in data) || (data.controlledByAgent is string && data.controlledByAgent.size() <= 120));
+    }
+
+    function isValidSwapnokuthirSalesRep(data, userId, repId) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'type', 'status', 'integratedWithAstra', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'name', 'role', 'type', 'territory', 'status', 'handledLeads', 'conversionRate', 'pitchScript', 'integratedWithAstra', 'updatedAt']) &&
+        data.id == repId &&
+        data.userId == userId &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+        data.type in ['ai-agent', 'human-rep'] &&
+        data.status in ['active', 'busy', 'offline'] &&
+        data.integratedWithAstra is bool &&
+        data.updatedAt is string && data.updatedAt.size() <= 64 &&
+        (!('role' in data) || (data.role is string && data.role.size() <= 160)) &&
+        (!('territory' in data) || (data.territory is string && data.territory.size() <= 160)) &&
+        (!('handledLeads' in data) || (data.handledLeads is number && data.handledLeads >= 0)) &&
+        (!('conversionRate' in data) || (data.conversionRate is number && data.conversionRate >= 0 && data.conversionRate <= 100)) &&
+        (!('pitchScript' in data) || (data.pitchScript is string && data.pitchScript.size() <= 4000));
+    }
+
+    function isValidSwapnokuthirLead(data, userId, leadId) {
+      return data.keys().hasAll(['id', 'userId', 'customerName', 'channel', 'inquiry', 'stage', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'userId', 'customerName', 'contact', 'channel', 'inquiry', 'assignedRepId', 'assignedRepName', 'stage', 'aiSuggestedReply', 'createdAt', 'updatedAt']) &&
+        data.id == leadId &&
+        data.userId == userId &&
+        data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 160 &&
+        data.channel in ['Website Chat', 'WhatsApp', 'Facebook', 'Direct'] &&
+        data.inquiry is string && data.inquiry.size() >= 1 && data.inquiry.size() <= 4000 &&
+        data.stage in ['new', 'contacted', 'quoted', 'won'] &&
+        data.createdAt is string && data.createdAt.size() <= 64 &&
+        data.updatedAt is string && data.updatedAt.size() <= 64 &&
+        (!('contact' in data) || (data.contact is string && data.contact.size() <= 200)) &&
+        (!('assignedRepId' in data) || (data.assignedRepId is string && data.assignedRepId.size() <= 128)) &&
+        (!('assignedRepName' in data) || (data.assignedRepName is string && data.assignedRepName.size() <= 160)) &&
+        (!('aiSuggestedReply' in data) || (data.aiSuggestedReply is string && data.aiSuggestedReply.size() <= 4000));
+    }
+
+    match /users/{userId} {
+      match /profile/{profileId} {
+        allow get: if isOwner(userId) && isValidId(profileId);
+        allow list: if isOwner(userId) && resource.data.uid == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(profileId) && isValidProfile(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(profileId) && isValidProfile(incoming(), userId) &&
+          incoming().uid == existing().uid &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'organization', 'photoURL', 'lastLoginAt', 'preferredLanguage', 'email']);
+        allow delete: if isOwner(userId) && isValidId(profileId);
+      }
+
+      match /projects/{projectId} {
+        allow get: if isOwner(userId) && isValidId(projectId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(projectId) && isValidProject(incoming(), userId, projectId);
+        allow update: if isOwner(userId) && isValidId(projectId) && isValidProject(incoming(), userId, projectId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'category', 'description', 'color', 'updatedAt', 'fileCount', 'messageCount', 'isDefault']);
+        allow delete: if isOwner(userId) && isValidId(projectId);
+
+        match /documents/{docId} {
+          allow get: if isOwner(userId) && isValidId(projectId) && isValidId(docId);
+          allow list: if isOwner(userId) && isValidId(projectId) && resource.data.userId == request.auth.uid;
+          allow create: if isOwner(userId) && isValidId(projectId) && isValidId(docId) &&
+            exists(/databases/$(database)/documents/users/$(userId)/projects/$(projectId)) &&
+            isValidWorkspaceDoc(incoming(), userId, projectId, docId);
+          allow update: if isOwner(userId) && isValidId(projectId) && isValidId(docId) &&
+            isValidWorkspaceDoc(incoming(), userId, projectId, docId) &&
+            incoming().docId == existing().docId &&
+            incoming().projectId == existing().projectId &&
+            incoming().userId == existing().userId &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['filename', 'language', 'content', 'updatedAt', 'versionCount']);
+          allow delete: if isOwner(userId) && isValidId(projectId) && isValidId(docId);
+        }
+
+        match /messages/{messageId} {
+          allow get: if isOwner(userId) && isValidId(projectId) && isValidId(messageId);
+          allow list: if isOwner(userId) && isValidId(projectId) && resource.data.userId == request.auth.uid;
+          allow create: if isOwner(userId) && isValidId(projectId) && isValidId(messageId) &&
+            exists(/databases/$(database)/documents/users/$(userId)/projects/$(projectId)) &&
+            isValidChatMessage(incoming(), userId, projectId, messageId);
+          allow update: if isOwner(userId) && isValidId(projectId) && isValidId(messageId) &&
+            isValidChatMessage(incoming(), userId, projectId, messageId) &&
+            incoming().id == existing().id &&
+            incoming().projectId == existing().projectId &&
+            incoming().userId == existing().userId &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['content', 'timestamp']);
+          allow delete: if isOwner(userId) && isValidId(projectId) && isValidId(messageId);
+        }
+      }
+
+      match /music_tracks/{trackId} {
+        allow get: if isOwner(userId) && isValidId(trackId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(trackId) && isValidMusicTrack(incoming(), userId, trackId);
+        allow update: if isOwner(userId) && isValidId(trackId) && isValidMusicTrack(incoming(), userId, trackId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'bpm', 'lyricsSections', 'fullLyricsText', 'styleNotes', 'projectId']);
+        allow delete: if isOwner(userId) && isValidId(trackId);
+      }
+
+      match /swapnokuthir_agents/{agentId} {
+        allow get: if isOwner(userId) && isValidId(agentId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(agentId) && isValidSwapnokuthirAgent(incoming(), userId, agentId);
+        allow update: if isOwner(userId) && isValidId(agentId) && isValidSwapnokuthirAgent(incoming(), userId, agentId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().sector == existing().sector &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'bnName', 'masterAgent', 'mode', 'directive', 'lastAction', 'lastSyncedAt', 'tasksCompleted']);
+        allow delete: if isOwner(userId) && isValidId(agentId);
+      }
+
+      match /swapnokuthir_posts/{postId} {
+        allow get: if isOwner(userId) && isValidId(postId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(postId) && isValidSwapnokuthirPost(incoming(), userId, postId);
+        allow update: if isOwner(userId) && isValidId(postId) && isValidSwapnokuthirPost(incoming(), userId, postId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'slug', 'category', 'status', 'excerpt', 'content', 'authorAgent', 'featured', 'views', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(postId);
+      }
+
+      match /swapnokuthir_contents/{contentId} {
+        allow get: if isOwner(userId) && isValidId(contentId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(contentId) && isValidSwapnokuthirContent(incoming(), userId, contentId);
+        allow update: if isOwner(userId) && isValidId(contentId) && isValidSwapnokuthirContent(incoming(), userId, contentId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().sectionKey == existing().sectionKey &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['label', 'headline', 'subheadline', 'body', 'ctaLabel', 'ctaUrl', 'seoTitle', 'seoDescription', 'isLive', 'controlledByAgent', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(contentId);
+      }
+
+      match /swapnokuthir_sales_reps/{repId} {
+        allow get: if isOwner(userId) && isValidId(repId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(repId) && isValidSwapnokuthirSalesRep(incoming(), userId, repId);
+        allow update: if isOwner(userId) && isValidId(repId) && isValidSwapnokuthirSalesRep(incoming(), userId, repId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'role', 'type', 'territory', 'status', 'handledLeads', 'conversionRate', 'pitchScript', 'integratedWithAstra', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(repId);
+      }
+
+      match /swapnokuthir_leads/{leadId} {
+        allow get: if isOwner(userId) && isValidId(leadId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId) && isValidId(leadId) && isValidSwapnokuthirLead(incoming(), userId, leadId);
+        allow update: if isOwner(userId) && isValidId(leadId) && isValidSwapnokuthirLead(incoming(), userId, leadId) &&
+          incoming().id == existing().id &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['customerName', 'contact', 'channel', 'inquiry', 'assignedRepId', 'assignedRepName', 'stage', 'aiSuggestedReply', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(leadId);
+      }
+    }
+  }
+}

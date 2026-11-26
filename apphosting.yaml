@@ -1,0 +1,13 @@
+# Firebase App Hosting configuration for Red Bird International
+runConfig:
+  minInstances: 0
+  maxInstances: 4
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  - variable: PORT
+    value: "3000"
+  - variable: NODE_ENV
+    value: "production"

@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": [
+    "App.tsx",
+    "admin-main.tsx",
+    "server.ts",
+    "src/main.tsx",
+    "src/firebase.ts",
+    "src/config",
+    "src/services/astraCore.ts",
+    "src/services/astraFirestoreSync.ts",
+    "src/services/telegramBot.ts",
+    "src/services/vaultAuth.ts",
+    "src/types",
+    "src/utils",
+    "components/Navbar.tsx",
+    "components/HomeShowcase.tsx",
+    "components/AdminPortal.tsx",
+    "components/CloudflareAgentConsole.tsx",
+    "components/AstraLiveAgentModule.tsx",
+    "components/astra"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Remix Astra-Gravity | Advanced Autonomous AI",
+  "description": "Next-generation autonomous multi-modal AI agent featuring live neural voice uplink in Bengali \u0026 English, visual screen telemetry, multi-agent swarm architecture, and dynamic code \u0026 document workspace.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,243 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "Astra User Profile",
+      "description": "Authenticated user account metadata stored privately under the user's document tree.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 254 },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "organization": { "type": "string", "maxLength": 160 },
+        "photoURL": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "lastLoginAt": { "type": "string", "maxLength": 64 },
+        "preferredLanguage": { "type": "string", "enum": ["bn", "en", "auto"] }
+      },
+      "required": ["uid", "email", "displayName", "createdAt", "lastLoginAt"]
+    },
+    "AstraProject": {
+      "title": "Astra Workspace Project",
+      "description": "Dedicated workspace project with isolated documents and conversation history.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "category": { "type": "string", "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "color": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 },
+        "fileCount": { "type": "number" },
+        "messageCount": { "type": "number" },
+        "isDefault": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "name", "category", "color", "createdAt", "updatedAt"]
+    },
+    "WorkspaceDocument": {
+      "title": "Workspace Document",
+      "description": "File or code artifact belonging to an Astra workspace project.",
+      "type": "object",
+      "properties": {
+        "docId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "projectId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "filename": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "language": { "type": "string", "maxLength": 64 },
+        "content": { "type": "string", "maxLength": 400000 },
+        "updatedAt": { "type": "string", "maxLength": 64 },
+        "versionCount": { "type": "number" }
+      },
+      "required": ["docId", "projectId", "userId", "filename", "language", "content", "updatedAt"]
+    },
+    "ChatMessage": {
+      "title": "Project Chat Message",
+      "description": "Conversation message persisted per project for an authenticated user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "projectId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "role": { "type": "string", "enum": ["user", "agent", "system"] },
+        "content": { "type": "string", "maxLength": 50000 },
+        "timestamp": { "type": "string", "maxLength": 64 },
+        "createdAtMs": { "type": "number" }
+      },
+      "required": ["id", "projectId", "userId", "role", "content", "timestamp", "createdAtMs"]
+    },
+    "MusicComposition": {
+      "title": "AI Music Composition & Lyrics",
+      "description": "Structured multi-track music score and arranged lyrics generated in Astra Music Studio.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "projectId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 180 },
+        "prompt": { "type": "string", "maxLength": 1000 },
+        "genre": { "type": "string", "maxLength": 64 },
+        "mood": { "type": "string", "maxLength": 64 },
+        "language": { "type": "string", "maxLength": 40 },
+        "bpm": { "type": "number" },
+        "musicalKey": { "type": "string", "maxLength": 32 },
+        "timeSignature": { "type": "string", "maxLength": 16 },
+        "durationSeconds": { "type": "number" },
+        "styleNotes": { "type": "string", "maxLength": 1200 },
+        "instruments": { "type": "array" },
+        "chordProgression": { "type": "array" },
+        "melodyNotes": { "type": "array" },
+        "bassPattern": { "type": "array" },
+        "drumPattern": { "type": "object" },
+        "lyricsSections": { "type": "array" },
+        "fullLyricsText": { "type": "string", "maxLength": 20000 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "userId", "title", "genre", "mood", "bpm", "musicalKey", "durationSeconds", "createdAt"]
+    },
+    "SwapnokuthirAgent": {
+      "title": "Swapnokuthir Sector Agent",
+      "description": "Autonomous sector sub-agent integrated under Astra Master Agent for swapnokuthir.com.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "bnName": { "type": "string", "maxLength": 160 },
+        "sector": { "type": "string", "enum": ["content", "catalog", "seo", "sales", "support", "ops"] },
+        "masterAgent": { "type": "string", "maxLength": 80 },
+        "mode": { "type": "string", "enum": ["autonomous", "supervised", "paused"] },
+        "directive": { "type": "string", "maxLength": 2000 },
+        "lastAction": { "type": "string", "maxLength": 500 },
+        "lastSyncedAt": { "type": "string", "maxLength": 64 },
+        "tasksCompleted": { "type": "number" }
+      },
+      "required": ["id", "userId", "name", "sector", "masterAgent", "mode", "directive", "lastSyncedAt"]
+    },
+    "SwapnokuthirPost": {
+      "title": "Swapnokuthir Website Post",
+      "description": "Article, collection highlight, campaign, or announcement post for swapnokuthir.com.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "slug": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "category": { "type": "string", "enum": ["Collection", "Story", "Campaign", "Announcement", "Guide"] },
+        "status": { "type": "string", "enum": ["published", "draft", "scheduled"] },
+        "excerpt": { "type": "string", "maxLength": 1000 },
+        "content": { "type": "string", "maxLength": 50000 },
+        "authorAgent": { "type": "string", "maxLength": 120 },
+        "featured": { "type": "boolean" },
+        "views": { "type": "number" },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "userId", "title", "slug", "category", "status", "content", "createdAt", "updatedAt"]
+    },
+    "SwapnokuthirContentBlock": {
+      "title": "Swapnokuthir Site Content Block",
+      "description": "Agent-controlled website section content and SEO metadata for swapnokuthir.com.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "sectionKey": { "type": "string", "enum": ["hero", "announcement", "featured_collections", "brand_story", "contact_cta"] },
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "headline": { "type": "string", "minLength": 1, "maxLength": 320 },
+        "subheadline": { "type": "string", "maxLength": 400 },
+        "body": { "type": "string", "maxLength": 10000 },
+        "ctaLabel": { "type": "string", "maxLength": 120 },
+        "ctaUrl": { "type": "string", "maxLength": 256 },
+        "seoTitle": { "type": "string", "maxLength": 200 },
+        "seoDescription": { "type": "string", "maxLength": 500 },
+        "isLive": { "type": "boolean" },
+        "controlledByAgent": { "type": "string", "maxLength": 120 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "userId", "sectionKey", "label", "headline", "isLive", "updatedAt"]
+    },
+    "SwapnokuthirSalesRep": {
+      "title": "Swapnokuthir Sales Representative",
+      "description": "AI or human sales representative integrated with Astra for swapnokuthir.com.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "role": { "type": "string", "maxLength": 160 },
+        "type": { "type": "string", "enum": ["ai-agent", "human-rep"] },
+        "territory": { "type": "string", "maxLength": 160 },
+        "status": { "type": "string", "enum": ["active", "busy", "offline"] },
+        "handledLeads": { "type": "number" },
+        "conversionRate": { "type": "number" },
+        "pitchScript": { "type": "string", "maxLength": 4000 },
+        "integratedWithAstra": { "type": "boolean" },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "userId", "name", "type", "status", "integratedWithAstra", "updatedAt"]
+    },
+    "SwapnokuthirLead": {
+      "title": "Swapnokuthir Sales Lead",
+      "description": "Customer inquiry and sales pipeline lead assigned to a Swapnokuthir sales representative.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "customerName": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "contact": { "type": "string", "maxLength": 200 },
+        "channel": { "type": "string", "enum": ["Website Chat", "WhatsApp", "Facebook", "Direct"] },
+        "inquiry": { "type": "string", "maxLength": 4000 },
+        "assignedRepId": { "type": "string", "maxLength": 128 },
+        "assignedRepName": { "type": "string", "maxLength": 160 },
+        "stage": { "type": "string", "enum": ["new", "contacted", "quoted", "won"] },
+        "aiSuggestedReply": { "type": "string", "maxLength": 4000 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "userId", "customerName", "channel", "inquiry", "stage", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/profile/{profileId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user account profile."
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/AstraProject" },
+      "description": "User-owned workspace projects."
+    },
+    "/users/{userId}/projects/{projectId}/documents/{docId}": {
+      "schema": { "$ref": "#/entities/WorkspaceDocument" },
+      "description": "Workspace documents belonging to a user project."
+    },
+    "/users/{userId}/projects/{projectId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Conversation history belonging to a user project."
+    },
+    "/users/{userId}/music_tracks/{trackId}": {
+      "schema": { "$ref": "#/entities/MusicComposition" },
+      "description": "Saved AI-generated music compositions and structured lyrics for a user."
+    },
+    "/users/{userId}/swapnokuthir_agents/{agentId}": {
+      "schema": { "$ref": "#/entities/SwapnokuthirAgent" },
+      "description": "Swapnokuthir sector sub-agents orchestrated by Astra Master Agent."
+    },
+    "/users/{userId}/swapnokuthir_posts/{postId}": {
+      "schema": { "$ref": "#/entities/SwapnokuthirPost" },
+      "description": "Managed posts and campaigns for swapnokuthir.com."
+    },
+    "/users/{userId}/swapnokuthir_contents/{contentId}": {
+      "schema": { "$ref": "#/entities/SwapnokuthirContentBlock" },
+      "description": "Website section content blocks and SEO metadata for swapnokuthir.com."
+    },
+    "/users/{userId}/swapnokuthir_sales_reps/{repId}": {
+      "schema": { "$ref": "#/entities/SwapnokuthirSalesRep" },
+      "description": "Sales representatives integrated with Astra for swapnokuthir.com."
+    },
+    "/users/{userId}/swapnokuthir_leads/{leadId}": {
+      "schema": { "$ref": "#/entities/SwapnokuthirLead" },
+      "description": "Customer leads and sales inquiries tracked in Swapnokuthir Admin Dashboard."
+    }
+  }
+}
